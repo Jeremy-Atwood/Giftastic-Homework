@@ -1,74 +1,63 @@
 $(document).ready(function () {
+    $(function () {
+        addButtons(searchArray, 'searchButton', "#buttonsArea");
+    });
 
-    // Setting global variables.
-    var input = $("#search");
-    var submit = $("#submit");
-    var apiKey = "qJqrKYdk7iIV7049lGHy7dRR5bL4qMdB";
-    var queryURL = "http://api.giphy.com/v1/gifs/search?q=" + input + "&api_key=" + apiKey + "&rating=g&limit=10"
-    var reactionGif = ["happy", "sad", "angry", "excited", "confused"];
-    var numberOfGifs = 10;
-    var rating = "g";
-    creatButtons();
-    // getGiphy();
-    function creatButtons() {
-        for (var i = 0; i < reactionGif.length; i++) {
-            console.log(reactionGif[i]);
-            var button = "<button class= 'btn btn-primary>"
-            var buttonFill = $(button).text(reactionGif[i]);
-            console.log(buttonFill);
-            $(".button-container").append(buttonFill);
+    var searchArray = ["happy", "sad", "angry", "excited", "confused"];
+
+    function addButtons(searchArray, classToAdd, areaToAdd) {
+        $(areaToAdd).empty();
+
+        for (var i = 0; i < searchArray.length; i++) {
+            var a = $("<button>");
+            a.addClass(classToAdd);
+            a.attr('data-type', searchArray[i]);
+            a.text(searchArray[i]);
+            $(areaToAdd).append(a);
+        };
+    };
+
+    $(document).on('click', '.searchButton', function () {
+        $('#searches').empty();
+        var type = $(this).data('type');
+        var queryURL = "http://api.giphy.com/v1/gifs/search?q=" + type + "&api_key=qJqrKYdk7iIV7049lGHy7dRR5bL4qMdB&limit=10";
+
+        $.ajax({ url: queryURL, method: "GET" })
+            .done(function (response) {
+                for (var i = 0; i < response.data.length; i++) {
+                    var searchDiv = $('<div class= "search-item">');
+                    var rating = response.data[i].rating;
+                    var p = $('<p>').text('Rating: ' + rating);
+                    var animated = response.data[i].images.fixed_height.url;
+                    var still = response.data[i].images.fixed_height_still.url;
+                    var image = $('<img>');
+                    image.attr('src', still);
+                    image.attr('data-still', still);
+                    image.attr('data-animated', animated);
+                    image.attr('data-state', 'still');
+                    image.addClass('searchImage');
+                    searchDiv.append(p);
+                    searchDiv.append(image);
+                    $('#searches').append(searchDiv);
+                };
+            });
+    });
+
+    $(document).on('click', '.searchImage', function () {
+        var state = $(this).attr('data-state');
+        if (state === 'still') {
+            $(this).attr('src', $(this).data('animated'));
+            $(this).attr('data-state', 'animated');
+        } else {
+            $(this).attr('src', $(this).data('still'));
+            $(this).attr('data-state', 'still');
         }
-    }
+    });
 
-    $.ajax({
-        url: queryURL,
-        method: "GET"
-    })
-        .then(function (response) {
-            // Creating buttons.
-            console.log(response);
-
-            // Get input from the search when the user presses submit
-            submit.on("click", function (event) {
-                event.preventDefault();
-                var userInput = input.val();
-                console.log(userInput);
-                // getGiphy(userInput);
-            })
-
-
-        })
-
-
-
-    // // Ajax call.
-    // $.ajax({
-    //     url: queryURL,
-    //     method: "GET"
-
-    //         .then(function (data) {
-    //             console.log(data);
-
-    //             // Rendering the buttons.
-    //             function renderButtons() {
-    //                 for (var i = 0; i < reactionGif.length; i++) {
-    //                     var newButton = $(".container").append("<button>");
-    //                     var button = newButton.reactionGif[i];
-    //                 }
-    //             }
-    //             // Get input from the search when the user presses submit
-    //             submit.on("click", function (event) {
-    //                 event.preventDefault();
-    //                 var userInput = input.val();
-    //                 console.log(userInput);
-    //                 getGiphy(userInput);
-    //             })
-    //             // Make a get request to the api with the user input
-    //             function getGiphy(userInput) {
-
-    //             });
-    // }
-
-    // })
-
+    $('#addSearch').on('click', function (event) {
+        var newSearch = $('input').eq(0).val();
+        searchArray.push(newSearch);
+        addButtons(searchArray, 'searchButton', '#buttonsArea');
+        return false;
+    });
 })
